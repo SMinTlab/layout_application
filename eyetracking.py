@@ -7,6 +7,7 @@ import cv2
 import subprocess
 import re
 import datetime
+import schedule
 
 class EyeTracking:
     wh=(1440,878)
@@ -14,10 +15,10 @@ class EyeTracking:
     prev_xy=(0,0)
     save_img_path=''
     save_gaze_path=''
-    freq=0
+    freq=1/60
     color=(255,255,255)
     eyetracker=None
-
+    millsec = [0,0]
 
     def __init__(self,wh,save_img_path,save_gaze_path):
         if wh[0]>1440:
@@ -53,23 +54,20 @@ class EyeTracking:
 
 
 
-    def exec_calibrate(self):
+    def exec_calibration(self):
         calibration=tr.ScreenBasedCalibration(self.eyetracker)
-        calibration.enter_calibration_mode()
+        calibration.enter_validation_mode()
         points=[(0.5,0.5),(0.1,0.1),(0.1,0.9),(0.9,0.1),(0.9,0.9)]
 
         for point in points:
             print("Show a point on screen at {0}.".format(point))
             time.sleep(0.7)
-            while calibration.compute_and_apply().status!=tr.CALIBRATION_STATUS_SUCCESS and calibration.collect_data(point[0],point[1])!=tr.CALIBRATION_STATUS_SUCCESS:
-                calibration.discard_data(point[0],point[1])
-                print("Again.")
-                print("Show a point on screen at {0}.".format(point))
-                time.sleep(0.7)
+            if calibration.compute_and_apply().status!=tr.CALIBRATION_STATUS_SUCCESS:
+                calibration.collect_data(point[0],point[1])
         print("Apply calibration.")
-        result=calibration.compute_and_apply()
-        print(str(result.status)+','+str(result.calibration_points))
-        calibration.leave_calibration_mode()
+        result=calibration.compute()
+        print("result:{}".format(result.status))
+        calibration.leave_validation_mode()
         print("Completed calibration.")
 
 
@@ -94,7 +92,24 @@ class EyeTracking:
                     self.eyetracker.unsubscribe_from(tr.EYETRACKER_GAZE_DATA, self.gaze_data_callback)
                     cv2.destroyAllWindows()
                     sys.exit()
+    def job(self):
+        now = datetime.datetime.now()
+        self.millsec[1] = self.millsec[0]
+        split = str(now).split(".")
+        self.millsec[0] = split[0].split(":")[-1]+"."+split[1]
+        diff = float(self.millsec[0])-float(self.millsec[1])
+        if diff < 0:
+            diff = float("60." + split[1])-float(self.millsec[1])
+        print(str(now)+" "+str(diff))
 
+    def mainloop(self):
+        if False and self.eyetracker is None:
+            print('No EyeTracker found.')
+        else:
+            schedule.every(self.freq).seconds.do(self.job)
+            while True:
+                schedule.run_pending()
+                time.sleep(0.001)
 
 
 def main():
@@ -109,8 +124,8 @@ def main():
     pat=r"\D"
     wh[0]=int(re.sub(pat,"",wh[0]))
     wh[1]=int(re.sub(pat,"",wh[1]))
-    EyeTracking(tuple(wh),'../pics/','../data/').start()
-    #EyeTracking(tuple(wh),'pics/','data/').exec_calibrate()
+    #EyeTracking(tuple(wh),'../pics/','../data/').mainloop()
+    EyeTracking(tuple(wh),'pics/','data/').exec_calibration()
 
 
 if __name__=="__main__":
