@@ -2,7 +2,7 @@
 import sys
 import math
 from tkinter import *
-import tkinter as Tk
+import tkinter as tk
 import tkinter.font as font
 from tkinter import ttk
 import nagisa
@@ -15,15 +15,18 @@ def N(s):
         yield n
 
 class Application(ttk.Frame):
-    ROW = 15
-    COLUMN = 25
-    NEST = 3
     NUM_CHAR = 1
+    ROW = 15
+    COLUMN = int(25/NUM_CHAR)
+    NEST = 3
     MY_LABEL_STYLE_NAME = "my.TLabel"
-    style = None
     font_size = 50
-    vars = []
-    labels = []
+    MY_FONT = ("Helvetica",font_size)
+    ROTATE_SYMBOLS = ['（','）','(',')']
+    TRANS_SYMBOLS = ['、','。']
+    style = None
+    ids = []
+    canvases = []
     words = None
     idx = [0,0]
 
@@ -33,7 +36,7 @@ class Application(ttk.Frame):
         super().__init__(master=None)
         self.master = master
         self.style = ttk.Style()
-        self.style.configure(self.MY_LABEL_STYLE_NAME,font=("Helvetica",self.font_size))
+        self.style.configure(self.MY_LABEL_STYLE_NAME,font=self.MY_FONT)
         self.create_widgets()
         self.words = [list(takewhile(lambda n : n < self._num_max,N(0)))]
         self.arranging(self.words)
@@ -50,25 +53,25 @@ class Application(ttk.Frame):
     def create_widgets(self):
         for i in range(self.NEST):
             for j in range(self.COLUMN-2*i):
-                var = Tk.StringVar()
-                self.vars.append(var)
-                label = ttk.Label(self,textvariable=var,style=self.MY_LABEL_STYLE_NAME)
+                label = tk.Canvas(self,width=self.NUM_CHAR*self.font_size,height=self.font_size)
                 label.grid(column=j,row=2*i,sticky=NSEW)
-                self.labels.append(label)
+                id = label.create_text(self.font_size/2*self.NUM_CHAR,self.font_size/2,text="M",font=self.MY_FONT)
+                self.ids.append(id)
+                self.canvases.append(label)
                 self.columnconfigure(j,weight=1)
             for k in range(1,self.ROW-2*i):
-                var = Tk.StringVar()
-                self.vars.append(var)
-                label = ttk.Label(self,textvariable=var,style=self.MY_LABEL_STYLE_NAME)
+                label = tk.Canvas(self,width=self.NUM_CHAR*self.font_size,height=self.font_size)
                 label.grid(column=j,row=2*i+k,sticky=NSEW)
-                self.labels.append(label)
+                id = label.create_text(self.font_size/2*self.NUM_CHAR,self.font_size/2,text="M",font=self.MY_FONT)
+                self.ids.append(id)
+                self.canvases.append(label)
                 self.rowconfigure(2*i+k,weight=1)
         self.grid(column=0,row=0,sticky=NSEW)
         self.master.columnconfigure(0,weight=1)
         self.master.rowconfigure(0,weight=1)
 
     def on_left_clicked(self,event):
-        for i,l in enumerate(self.labels):
+        for i,l in enumerate(self.canvases):
             print("{}: x={}, y={}".format(i,l.winfo_x(),l.winfo_y()))
 
     def on_pressed_return(self,event):
@@ -102,7 +105,7 @@ class Application(ttk.Frame):
 
     def arranging(self, words):
         finalize=False
-        for v in self.vars:
+        for i, v in enumerate(self.ids):
             s=""
             for n in range(self.NUM_CHAR):
                 if finalize:
@@ -117,18 +120,32 @@ class Application(ttk.Frame):
                     else:
                         finalize = True
                         s += ""
-            v.set(s)
+            """
+            if self.contains_symbol(s):
+                angle = 90
+            else:
+                angle = 0
+            """
+            self.canvases[i].itemconfigure(v,text=s,angle=0)
 
-    def numbering(self):
-        for i,v in enumerate(self.vars):
-            v.set(str(i))
+    def is_symbol(self, ch, symbols):
+        for s in symbols:
+            if s == ch:
+                return True
+        return False
+
+    def contains_symbol(self, str, symbols):
+        for s in str:
+            if self.is_symbol(s,symbols):
+                return True
+        return False
 
     def clear(self):
         for s in root.pack_slaves():
             s.destroy()
 
 if __name__ == '__main__':
-    root = Tk.Tk()
-    root.title('Pack Three Labels')
+    root = tk.Tk()
+    root.title('L ettering')
     app = Application(master = root)
     root.mainloop()
