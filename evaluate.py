@@ -17,12 +17,14 @@ class Test:
     eyetracker = None
     gaze_data = []
     gaze_data_buffer = []
-    epsilon = 0.03
+    epsilon = 0.01
     lap_times = []
     passed = 0
     errors = []
     error_buffer = None
     navi = True
+    all_gaze = []
+    all_err = []
 
     def __init__(self, width, height, start):
         self.width = width
@@ -49,7 +51,9 @@ class Test:
     def gaze_data_callback(self,gaze_data):
         if gaze_data["left_gaze_point_validity"]+gaze_data["right_gaze_point_validity"] is 2:
             g = (gaze_data["left_gaze_point_on_display_area"], gaze_data["right_gaze_point_on_display_area"], gaze_data["device_time_stamp"])
-
+            self.all_gaze.append(g)
+            ave = self.gaze_to_ave(g)
+            self.all_err.append(self.sq_dist_pl(ave[0],ave[1],self.lines[self.passed]))
             if len(self.gaze_data) % 2 is 1:
                 if not self.in_sight(self.tracks[self.passed - 1],g):
                     print("Start from {}".format(self.tracks[self.passed - 1]))
@@ -65,7 +69,7 @@ class Test:
                                 self.gaze_data_buffer.clear()
                                 self.error_buffer[self.passed - 1].fill(0.0)
                             else:
-                                print("In sight. {}".format(p))
+                                print("In sight. {}, skip={}".format(p,skip))
                                 for j in range(skip):
                                     try:
                                         nearest = self.nearest_from(self.tracks[self.passed + j])
@@ -152,25 +156,131 @@ class Test:
             sum[1] += e[1]
         print(self.errors)
         print("sum = {}".format(sum))
-
+        print("output all gaze data.")
+        with open('./all_gaze_data',mode='a') as f:
+            for i,g in enumerate(self.all_gaze):
+                ave = self.gaze_to_ave(g)
+                f.write("{} {} {} {}\n".format(i,ave[0],ave[1],self.all_err[i]))
 def main():
     t = Test(1440,878,(0,0))
     try:
-        t.add_track_relative((1,0))
-    except Exception as e:
-        print(e)
-        sys.exit(1)
-    try:
-        t.add_track_relative((0,1))
-    except Exception as e:
-        print(e)
-        sys.exit(1)
-    try:
-        t.add_track_relative((1,1))
-    except Exception as e:
-        print(e)
-        sys.exit(1)
-    try:
+        t.add_track((25,25))
+        """
+        t.add_track((81,25))
+        t.add_track((137,25))
+        t.add_track((193,25))
+        t.add_track((249,25))
+        t.add_track((305,25))
+        t.add_track((361,25))
+        t.add_track((417,25))
+        t.add_track((473,25))
+        t.add_track((529,25))
+        t.add_track((585,25))
+        t.add_track((641,25))
+        t.add_track((697,25))
+        t.add_track((753,25))
+        t.add_track((809,25))
+        t.add_track((865,25))
+        t.add_track((921,25))
+        t.add_track((977,25))
+        t.add_track((1033,25))
+        t.add_track((1089,25))
+        t.add_track((1145,25))
+        t.add_track((1201,25))
+        t.add_track((1257,25))
+        t.add_track((1313,25))
+        """
+        t.add_track((1369,25))
+        """
+        t.add_track((1369,81))
+        t.add_track((1369,137))
+        t.add_track((1369,193))
+        t.add_track((1369,249))
+        t.add_track((1369,305))
+        t.add_track((1369,361))
+        t.add_track((1369,417))
+        t.add_track((1369,473))
+        t.add_track((1369,529))
+        t.add_track((1369,585))
+        t.add_track((1369,641))
+        t.add_track((1369,697))
+        t.add_track((1369,753))
+        """
+        t.add_track((1369,809))
+        t.add_track((25,137))
+        """
+        t.add_track((81,137))
+        t.add_track((137,137))
+        t.add_track((193,137))
+        t.add_track((249,137))
+        t.add_track((305,137))
+        t.add_track((361,137))
+        t.add_track((417,137))
+        t.add_track((473,137))
+        t.add_track((529,137))
+        t.add_track((585,137))
+        t.add_track((641,137))
+        t.add_track((697,137))
+        t.add_track((753,137))
+        t.add_track((809,137))
+        t.add_track((865,137))
+        t.add_track((921,137))
+        t.add_track((977,137))
+        t.add_track((1033,137))
+        t.add_track((1089,137))
+        t.add_track((1145,137))
+        t.add_track((1201,137))
+        """
+        t.add_track((1257,137))
+        """
+        t.add_track((1257,193))
+        t.add_track((1257,249))
+        t.add_track((1257,305))
+        t.add_track((1257,361))
+        t.add_track((1257,417))
+        t.add_track((1257,473))
+        t.add_track((1257,529))
+        t.add_track((1257,585))
+        t.add_track((1257,641))
+        t.add_track((1257,697))
+        t.add_track((1257,753))
+        """
+        t.add_track((1257,809))
+        t.add_track((25,249))
+        """
+        t.add_track((81,249))
+        t.add_track((137,249))
+        t.add_track((193,249))
+        t.add_track((249,249))
+        t.add_track((305,249))
+        t.add_track((361,249))
+        t.add_track((417,249))
+        t.add_track((473,249))
+        t.add_track((529,249))
+        t.add_track((585,249))
+        t.add_track((641,249))
+        t.add_track((697,249))
+        t.add_track((753,249))
+        t.add_track((809,249))
+        t.add_track((865,249))
+        t.add_track((921,249))
+        t.add_track((977,249))
+        t.add_track((1033,249))
+        t.add_track((1089,249))
+        """
+        t.add_track((1145,249))
+        """
+        t.add_track((1145,305))
+        t.add_track((1145,361))
+        t.add_track((1145,417))
+        t.add_track((1145,473))
+        t.add_track((1145,529))
+        t.add_track((1145,585))
+        t.add_track((1145,641))
+        t.add_track((1145,697))
+        t.add_track((1145,753))
+        """
+        t.add_track((1145,809))
         t.run()
     except Exception as e:
         print(e)
