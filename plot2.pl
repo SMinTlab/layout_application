@@ -1,3 +1,4 @@
+set key left bottom
 set yr[1:0]
 set xl "relative x"
 set yl "relative y"
