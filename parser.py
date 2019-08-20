@@ -2,72 +2,79 @@ import sys
 import re
 import MeCab
 
+class Token():
+    words = None
+    postags = None
+    clause_index = None
+
+    def __init__(self, text, dep_num):
+        self.words = []
+        self.postags = []
+        self.clause_index = []
+        mecab = MeCab.Tagger('-d /usr/local/lib/mecab/dic/mecab-ipadic-neologd')
+        mecab.parse('')
+        node = mecab.parseToNode(text)
+        while node:
+            word = node.surface
+            self.words.append(word)
+            pos = node.feature.split(',')[0]
+            self.postags.append(pos)
+            #print("{} {}".format(word, pos))
+            node = node.next
+        i = 0
+        while i in range(len(self.postags)):
+            if self.postags[i] == Parser.prefix:
+                clause = []
+                j = 0
+                while self.postags[i+j] in Parser.prefix:
+                    clause.append(i+j)
+                    j += 1
+                k = 0
+                while self.postags[i+j+k] in Parser.dependents and k < dep_num:
+                    clause.append(i+j+k)
+                    k += 1
+                if k == 0:
+                    print("Wrong structure found.")
+                    c = ""
+                    p = ""
+                    for idx in range(i-10,i+j+1):
+                        c += self.words[idx]+" "
+                        p += self.postags[idx]+" "
+                    print("{}({})".format(c,p))
+                    #sys.exit(1)
+                l = 0
+                while self.postags[i+j+k+l] in Parser.suffix or self.postags[i+j+k+l] in Parser.independents:
+                    clause.append(i+j+k+l)
+                    l += 1
+                self.clause_index.append(clause)
+                i += j + k + l - 1
+            elif self.postags[i] in Parser.dependents:
+                clause = []
+                j = 0
+                while self.postags[i+j] in Parser.dependents and j < dep_num:
+                    clause.append(i+j)
+                    j += 1
+                k = 0
+                while self.postags[i+j+k] in Parser.suffix or self.postags[i+j+k] in Parser.independents:
+                    clause.append(i+j+k)
+                    k += 1
+                self.clause_index.append(clause)
+                i += j + k - 1
+            else:
+                print("ignored {}: {}({})".format(i,self.words[i],self.postags[i]))
+            i += 1
+
 class Parser:
-    ignore_list = []
-    substitute_list = []
+    ignore_list = None
+    substitute_list = None
     dependents = frozenset(["名詞","動詞","形容詞","連体詞","副詞", "感動詞","フィラー","接続詞"])
     independents = frozenset(["助詞","助動詞","記号"])
     prefix = "接頭詞"
     suffix = frozenset(["接尾詞"])
 
-    class Token():
-        words = []
-        postags = []
-        clause_index = []
-
-        def __init__(self, text, dep_num):
-            mecab = MeCab.Tagger('-d /usr/local/lib/mecab/dic/mecab-ipadic-neologd')
-            mecab.parse('')
-            node = mecab.parseToNode(text)
-            while node:
-                word = node.surface
-                self.words.append(word)
-                pos = node.feature.split(',')[0]
-                self.postags.append(pos)
-                #print("{} {}".format(word, pos))
-                node = node.next
-            i = 0
-            while i in range(len(self.postags)):
-                if self.postags[i] == Parser.prefix:
-                    clause = []
-                    j = 0
-                    while self.postags[i+j] in Parser.prefix:
-                        clause.append(i+j)
-                        j += 1
-                    k = 0
-                    while self.postags[i+j+k] in Parser.dependents and k < dep_num:
-                        clause.append(i+j+k)
-                        k += 1
-                    if k == 0:
-                        print("Wrong structure found.")
-                        c = ""
-                        p = ""
-                        for idx in range(i-10,i+j+1):
-                            c += self.words[idx]+" "
-                            p += self.postags[idx]+" "
-                        print("{}({})".format(c,p))
-                        #sys.exit(1)
-                    l = 0
-                    while self.postags[i+j+k+l] in Parser.suffix or self.postags[i+j+k+l] in Parser.independents:
-                        clause.append(i+j+k+l)
-                        l += 1
-                    self.clause_index.append(clause)
-                    i += j + k + l - 1
-                elif self.postags[i] in Parser.dependents:
-                    clause = []
-                    j = 0
-                    while self.postags[i+j] in Parser.dependents and j < dep_num:
-                        clause.append(i+j)
-                        j += 1
-                    k = 0
-                    while self.postags[i+j+k] in Parser.suffix or self.postags[i+j+k] in Parser.independents:
-                        clause.append(i+j+k)
-                        k += 1
-                    self.clause_index.append(clause)
-                    i += j + k - 1
-                else:
-                    print("ignored {}: {}({})".format(i,self.words[i],self.postags[i]))
-                i += 1
+    def __init__(self):
+        self.ignore_list = []
+        self.substitute_list = []
 
     def add_ignore(self,ignore_range):
         if len(ignore_range) is not 2:
@@ -86,7 +93,8 @@ class Parser:
             text = re.sub(pat,"",text)
         for sub in self.substitute_list:
             text = re.sub(sub[0],sub[1],text)
-        token = Parser.Token(text,dep_num)
+        print(text)
+        token = Token(text,dep_num)
         #print(token.clause_index)
         for clause in token.clause_index:
             c = ""
