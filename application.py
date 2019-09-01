@@ -1,3 +1,5 @@
+import json
+import os
 import time
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -13,6 +15,7 @@ from parser import Parser
 
 class Application:
 
+    setting_file_path = './settings'
     main_root = None
     tool_root = None
     main_frame = None
@@ -22,10 +25,18 @@ class Application:
     parser = None
     manager = None
     token = None
-    index = 0
+    indexes = None
+    lap_time = None
 
     def __init__(self):
-        self.index = 0
+        def empty2None(d:dict):
+            for k in d:
+                if isinstance(d[k],dict):
+                    empty2None(d[k])
+                elif d[k] == '':
+                    d[k] = None
+        self.lap_time = []
+        self.indexes = [0]
         self.chr_num = 0
         ruby = ["《", "》"]
         for_printer1 = ["[", "]"]
@@ -42,36 +53,63 @@ class Application:
         self.tool_root = tk.Toplevel()
         self.main_frame = ttk.Frame(self.main_root)
         self.tool_frame = ttk.Frame(self.tool_root)
-        self.manager = LayoutManager(self.main_frame,self.tool_frame)
+        if os.path.isfile(self.setting_file_path):
+            with open(self.setting_file_path) as f:
+                s = f.read()
+                d = json.loads(s)
+                empty2None(d)
+                self.manager = LayoutManager(self.main_frame,self.tool_frame,d)
+        else:
+            self.manager = LayoutManager(self.main_frame,self.tool_frame)
         self.manager.layout([x for x in range(self.manager.settings['structure']['nest']*self.manager.settings['structure']['row']*self.manager.settings['structure']['column'])], Layout.STRIPE)
         self.key_binding(self.main_root)
-        self.main_frame.pack()
-        self.tool_frame.pack()
 
     def key_binding(self, target):
         target.bind("<Return>",self.on_pressed_return)
         target.bind("<Control-v>",self.on_paste)
-        target.bind("<Button-1>",self.on_left_clicked)
-        target.bind('<Configure>',self.on_configured)
+        target.bind("<space>",self.on_pressed_space)
+        target.bind("<Key-t>",self.on_pressed_t)
 
     def on_pressed_return(self, e):
-        self.index += self.manager.layout([''.join(list(map(lambda i : self.token.words[i], clause))).strip() for clause in self.token.clause_index[self.index:]], Layout.STRIPE)
+        #print('{} {}'.format(self.indexes[-1],len(self.token.clause_index)))
+        if self.indexes[-1] < len(self.token.clause_index):
+            index = self.indexes[-1]
+            index += self.manager.layout([''.join(list(map(lambda i : self.token.words[i], clause))).strip() for clause in self.token.clause_index[index:]], Layout.STRIPE)
+            if len(self.lap_time) > 0:
+                s = ''.join(self.manager.now_clause_list)
+                self.lap_time.append((s,time.time()))
+            self.indexes.append(index)
+            self.manager.progress.configure(value=index)
 
     def on_paste(self, e):
-        self.index = 0
+        self.indexes = [0]
         cb = self.main_root.clipboard_get().strip()
         self.token = self.parser.parse(cb, sys.maxsize)
-        self.index = self.manager.layout([''.join(list(map(lambda i : self.token.words[i], clause))) for clause in self.token.clause_index], Layout.STRIPE)
+        self.indexes.append(self.manager.layout([''.join(list(map(lambda i : self.token.words[i], clause))).strip() for clause in self.token.clause_index], Layout.STRIPE))
+        self.manager.progress.configure(value=self.indexes[-1],maximum=len(self.token.clause_index),mode='determinate')
 
-    def on_left_clicked(self, e):
-        #self.manager.centering()
-        pass
+    def on_pressed_space(self,e):
+        if len(self.indexes) > 2:
+            self.indexes.pop(-1)
+            self.indexes.pop(-1)
+            index = self.indexes[-1]
+            index += self.manager.layout([''.join(list(map(lambda i : self.token.words[i], clause))).strip() for clause in self.token.clause_index[index:]], Layout.STRIPE)
+            self.indexes.append(index)
+            self.manager.progress.configure(value=index)
 
-    def on_configured(self,e):
-        print('{}'.format(e))
-
+    def on_pressed_t(self,e):
+        if len(self.lap_time) == 0:
+            self.lap_time.append(('',time.time()))
+        else:
+            for i in range(len(self.lap_time)):
+                if i != 0:
+                    print('Read {} chars in {} sec.'.format(len(self.lap_time[i][0]),self.lap_time[i][1]-self.lap_time[i-1][1]))
+            self.lap_time.clear()
+  
 def main():
     app = Application()
+    app.main_root.resizable(0,0)
+    app.tool_root.resizable(0,0)
     app.main_root.mainloop()
 
 if __name__ == '__main__':

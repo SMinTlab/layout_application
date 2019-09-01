@@ -1,0 +1,49 @@
+{
+  "spaces" : {
+    "char" : 1,
+    "sentence" : 10,
+    "paragraph" : 20
+  },
+  "font" : {
+    "name" : "Helvetica",
+    "size" : 24,
+    "weight" : "normal",
+    "slant": "roman",
+    "underline": "normal",
+    "overstrike" : "normal"
+  },
+  "canvas" : {
+    "width" : 40,
+    "height" : 40
+  },
+  "label" : {
+    "width" : 40,
+    "height" : 40
+  },
+  "screen" : {
+    "width" : 1440,
+    "height" : 870
+  },
+  "window" : {
+    "width" : 1440,
+    "height" : 870
+  },
+  "structure" : {
+    "nest" : 3,
+    "row" : 10,
+    "column" : 20,
+    "char_lim" : 5,
+    "strict_char_lim" : 5
+  },
+  "align" : "left",
+  "variables" : {
+    "centering" : "",
+    "char_num" : "",
+    "size" : "",
+    "nest_num" : ""
+  },
+  "color" : {
+    "foreground" : "f0f",
+    "background" : "#fff"
+  }
+}
