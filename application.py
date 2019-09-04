@@ -5,13 +5,11 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 
 import tkinter as tk
-from tkinter import *
 from tkinter import ttk
-from tkinter.ttk import *
 
 from layout_manager import LayoutManager
 from layout import Layout
-from parser import Parser
+from parser_ import Parser
 
 class Application:
 
@@ -63,6 +61,7 @@ class Application:
             self.manager = LayoutManager(self.main_frame,self.tool_frame)
         self.manager.layout([x for x in range(self.manager.settings['structure']['nest']*self.manager.settings['structure']['row']*self.manager.settings['structure']['column'])], Layout.STRIPE)
         self.key_binding(self.main_root)
+        self.main_frame.focus_set()
 
     def key_binding(self, target):
         target.bind("<Return>",self.on_pressed_return)

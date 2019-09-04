@@ -2,6 +2,7 @@ from threading import Thread
 import math
 
 import tkinter as tk
+import tkinter.ttk as ttk
 from tkinter import *
 from tkinter.colorchooser import *
 from tkinter.font import Font
@@ -108,7 +109,7 @@ class LayoutManager:
         if 'aqua' in style.theme_names():
             style.theme_use('aqua')
         else:
-            style.theme_use(style.theme_names[0])
+            style.theme_use(list(style.theme_names())[0])
         #print(style.theme_names())
         style.configure('MainFrame.TFrame',foreground=self.settings['color']['foreground'],background=self.settings['color']['background'])
         self.main_frame.configure(style='MainFrame.TFrame')
@@ -120,8 +121,8 @@ class LayoutManager:
         #print(clause_list)
         if layout == Layout.STRIPE:
             self.now_layout = layout
-            self.now_clause_list = clause_list
-            return self.layout_stripe(self.make_fixed_clause_list(clause_list))
+            self.now_clause_list = self.make_fixed_clause_list(clause_list)
+            return self.layout_stripe(self.now_clause_list)
         else:
             print("Not implemented layout {}".format(layout))
             return 0
@@ -137,8 +138,6 @@ class LayoutManager:
     def make_fixed_clause_list(self, clause_list):
         #print(clause_list)
         fixed = []
-        num = []
-        i = 0
         carry = ''
         lim = self.settings['structure']['char_lim']
         for c in clause_list:
@@ -180,7 +179,11 @@ class LayoutManager:
                     _font = Font(self.main_frame,family=self.settings['font']['name'],size=self.settings['font']['size'],weight=self.settings['font']['weight'])
                     label = ttk.Label(self.main_frame,text=txt,anchor=W,font=_font,style='MainFrame.TFrame.TLabel',justify=CENTER)
                     column_widgets.append(label)
-                    index += clause_num[self.settings['structure']['nest']*n+self.settings['structure']['row']*r+c]
+                    clause_num_index = self.settings['structure']['nest']*n+self.settings['structure']['row']*r+c
+                    if clause_num_index < len(clause_num):
+                        index += clause_num[clause_num_index]
+                    else:
+                        break
                     x = max_width + tail
                     w = x+label.winfo_reqwidth() + self.settings['spaces']['char']
                     h = y+label.winfo_reqheight() + self.settings['spaces']['sentence']
@@ -240,7 +243,7 @@ class LayoutManager:
 def main():
     root = tk.Tk()
     root.title('Frame')
-    manager = LayoutManager(root)
+    manager = LayoutManager(root,tk.Toplevel())
     manager.layout([x for x in range(manager.settings['structure']['nest']*manager.settings['structure']['row']*manager.settings['structure']['column'])], Layout.STRIPE)
     root.mainloop()
 
