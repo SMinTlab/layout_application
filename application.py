@@ -17,8 +17,10 @@ class Application:
     setting_file_path = './settings'
     main_root = None
     tool_root = None
+    timer_root = None
     main_frame = None
     tool_frame = None
+    timer_frame = None
     is_centering = None
     chr_num = 0
     parser = None
@@ -52,12 +54,14 @@ class Application:
         self.tool_root = tk.Toplevel()
         self.main_frame = ttk.Frame(self.main_root)
         self.tool_frame = ttk.Frame(self.tool_root)
+        self.timer_root = tk.Toplevel()
+        self.timer_frame = ttk.Frame(self.timer_root)
         if os.path.isfile(self.setting_file_path):
             with open(self.setting_file_path) as f:
                 s = f.read()
                 d = json.loads(s)
                 empty2None(d)
-                self.manager = LayoutManager(self.main_frame,self.tool_frame,d)
+                self.manager = LayoutManager(self.main_frame,self.tool_frame,self.timer_frame,d)
         else:
             self.manager = LayoutManager(self.main_frame,self.tool_frame)
         self.manager.layout([x for x in range(self.manager.settings['structure']['nest']*self.manager.settings['structure']['row']*self.manager.settings['structure']['column'])], Layout.STRIPE)

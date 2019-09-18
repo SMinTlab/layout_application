@@ -20,13 +20,15 @@ class LayoutManager:
     update_after = 50
     settings = {'spaces' : {'char' : 1, 'sentence' : 10, 'paragraph' : 20}, 'font' : {'name' : "Helvetica",'size' : 24, 'weight' : 'normal', 'slant': 'roman', 'underline': 'normal', 'overstrike' : 'normal'}, 'canvas' : {'width' : 40, 'height' : 40}, 'label' : {'width' : 40, 'height' : 40}, 'screen' : {'width' : 1440, 'height' : 870}, 'window' : {'width' : 1440, 'height' : 870}, 'structure' : {'nest' : 3, 'row' : 10, 'column' : 20, 'char_lim' : 5, 'strict_char_lim' : 5}, 'align' : 'left', 'variables' : {'centering' : None, 'char_num' : None, 'size' : None, 'nest_num' : None}, 'color' : {'foreground' : '#f0f', 'background' : '#fff'}}
 
-    def __init__(self, main_frame: ttk.Frame, tool_frame: ttk.Frame, settings=None):
+    def __init__(self, main_frame: ttk.Frame, tool_frame: ttk.Frame, timer_frame: ttk.Frame, settings=None):
         if not settings is None:
             self.settings = settings
         self.main_frame = main_frame
         self.tool_frame = tool_frame
+        self.timer_frame = timer_frame
         self.init_styles()
         self.make_tool_frame()
+        self.make_timer_frame()
         self.index = [0,0]
 
     def make_tool_frame(self):
@@ -105,6 +107,9 @@ class LayoutManager:
         scl_siz.pack()
         self.progress.pack()
         self.tool_frame.pack() 
+    
+    def make_timer_frame(self):
+        pass
 
     def init_styles(self):
         style = ttk.Style()
