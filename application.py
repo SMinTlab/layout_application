@@ -3,6 +3,7 @@ import os
 import time
 import sys
 from concurrent.futures import ThreadPoolExecutor
+import copy
 
 import tkinter as tk
 from tkinter import ttk
@@ -34,7 +35,7 @@ class Application:
                 elif d[k] == '':
                     d[k] = None
         self.lap_time = []
-        self.indexes = [0]
+        self.indexes = [[0,0]]
         self.chr_num = 0
         ruby = ["《", "》"]
         for_printer1 = ["[", "]"]
@@ -71,30 +72,36 @@ class Application:
 
     def on_pressed_return(self, e):
         #print('{} {}'.format(self.indexes[-1],len(self.token.clause_index)))
-        if self.indexes[-1] < len(self.token.clause_index):
-            index = self.indexes[-1]
-            index += self.manager.layout([''.join(list(map(lambda i : self.token.words[i], clause))).strip() for clause in self.token.clause_index[index:]], Layout.STRIPE)
+        if self.indexes[-1][0] < len(self.token.clause_index):
+            index = copy.copy(self.indexes[-1])
+            new_index = self.manager.layout([''.join(list(map(lambda i : self.token.words[i], clause))).strip() for clause in self.token.clause_index[index[0]:]], Layout.STRIPE)
+            index[0] += new_index[0]
+            index[1] += new_index[1]
             if len(self.lap_time) > 0:
                 s = ''.join(self.manager.now_clause_list)
                 self.lap_time.append((s,time.time()))
             self.indexes.append(index)
-            self.manager.progress.configure(value=index)
+            print(self.indexes)
+            self.manager.progress.configure(value=index[0])
 
     def on_paste(self, e):
-        self.indexes = [0]
+        self.indexes = [[0,0]]
         cb = self.main_root.clipboard_get().strip()
         self.token = self.parser.parse(cb, sys.maxsize)
         self.indexes.append(self.manager.layout([''.join(list(map(lambda i : self.token.words[i], clause))).strip() for clause in self.token.clause_index], Layout.STRIPE))
-        self.manager.progress.configure(value=self.indexes[-1],maximum=len(self.token.clause_index),mode='determinate')
+        self.manager.progress.configure(value=self.indexes[-1][0],maximum=len(self.token.clause_index),mode='determinate')
 
     def on_pressed_space(self,e):
         if len(self.indexes) > 2:
             self.indexes.pop(-1)
             self.indexes.pop(-1)
-            index = self.indexes[-1]
-            index += self.manager.layout([''.join(list(map(lambda i : self.token.words[i], clause))).strip() for clause in self.token.clause_index[index:]], Layout.STRIPE)
+            index = copy.copy(self.indexes[-1])
+            print(self.indexes)
+            new_index = self.manager.layout([''.join(list(map(lambda i : self.token.words[i], clause))).strip() for clause in self.token.clause_index[index[0]:]], Layout.STRIPE)
+            index[0] += new_index[0]
+            index[1] += new_index[1]
             self.indexes.append(index)
-            self.manager.progress.configure(value=index)
+            self.manager.progress.configure(value=index[0])
 
     def on_pressed_t(self,e):
         if len(self.lap_time) == 0:
