@@ -11,6 +11,7 @@ from tkinter import ttk
 from layout_manager import LayoutManager
 from layout import Layout
 from parser_ import Parser
+from timer import Timer
 
 class Application:
 

@@ -40,7 +40,8 @@
     "centering" : "",
     "char_num" : "",
     "size" : "",
-    "nest_num" : ""
+    "nest_num" : "",
+    "timer" : ""
   },
   "color" : {
     "foreground" : "f0f",

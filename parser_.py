@@ -11,8 +11,8 @@ class Token():
         self.words = []
         self.postags = []
         self.clause_index = []
-        mecab = MeCab.Tagger('-d C:\PROGRA~1\MeCab\dic\mecab-ipadic-neologd')
-        #mecab = MeCab.Tagger('-d /usr/local/lib/mecab/dic/mecab-ipadic-neologd')
+        #mecab = MeCab.Tagger('-d C:\PROGRA~1\MeCab\dic\mecab-ipadic-neologd')
+        mecab = MeCab.Tagger('-d /usr/local/lib/mecab/dic/mecab-ipadic-neologd')
         mecab.parse('')
         node = mecab.parseToNode(text)
         while node:

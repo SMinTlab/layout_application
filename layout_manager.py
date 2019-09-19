@@ -18,17 +18,15 @@ class LayoutManager:
     now_clause_list = None
     index = None
     update_after = 50
-    settings = {'spaces' : {'char' : 1, 'sentence' : 10, 'paragraph' : 20}, 'font' : {'name' : "Helvetica",'size' : 24, 'weight' : 'normal', 'slant': 'roman', 'underline': 'normal', 'overstrike' : 'normal'}, 'canvas' : {'width' : 40, 'height' : 40}, 'label' : {'width' : 40, 'height' : 40}, 'screen' : {'width' : 1440, 'height' : 870}, 'window' : {'width' : 1440, 'height' : 870}, 'structure' : {'nest' : 3, 'row' : 10, 'column' : 20, 'char_lim' : 5, 'strict_char_lim' : 5}, 'align' : 'left', 'variables' : {'centering' : None, 'char_num' : None, 'size' : None, 'nest_num' : None}, 'color' : {'foreground' : '#f0f', 'background' : '#fff'}}
+    settings = {'spaces' : {'char' : 1, 'sentence' : 10, 'paragraph' : 20}, 'font' : {'name' : "Helvetica",'size' : 24, 'weight' : 'normal', 'slant': 'roman', 'underline': 'normal', 'overstrike' : 'normal'}, 'canvas' : {'width' : 40, 'height' : 40}, 'label' : {'width' : 40, 'height' : 40}, 'screen' : {'width' : 1440, 'height' : 870}, 'window' : {'width' : 1440, 'height' : 870}, 'structure' : {'nest' : 3, 'row' : 10, 'column' : 20, 'char_lim' : 5, 'strict_char_lim' : 5}, 'align' : 'left', 'variables' : {'centering' : None, 'char_num' : None, 'size' : None, 'nest_num' : None, 'time' : None}, 'color' : {'foreground' : '#f0f', 'background' : '#fff'}}
 
-    def __init__(self, main_frame: ttk.Frame, tool_frame: ttk.Frame, timer_frame: ttk.Frame, settings=None):
+    def __init__(self, main_frame: ttk.Frame, tool_frame: ttk.Frame, settings=None):
         if not settings is None:
             self.settings = settings
         self.main_frame = main_frame
         self.tool_frame = tool_frame
-        self.timer_frame = timer_frame
         self.init_styles()
         self.make_tool_frame()
-        self.make_timer_frame()
         self.index = [0,0]
 
     def make_tool_frame(self):
@@ -108,9 +106,6 @@ class LayoutManager:
         self.progress.pack()
         self.tool_frame.pack() 
     
-    def make_timer_frame(self):
-        pass
-
     def init_styles(self):
         style = ttk.Style()
         if 'default' in style.theme_names():
@@ -160,7 +155,7 @@ class LayoutManager:
     def layout_stripe(self, clause_list, clause_num=None):
         self.clear(self.main_frame)
         self.widgets = []
-        index = [0,0] # [clause index of the clause list, character index of the clause]
+        self.index = [0,0] # [clause index of the clause list, character index of the clause]
         max_width = 0
         max_height = 0
         target_clause = ''
@@ -176,21 +171,21 @@ class LayoutManager:
                 column_widgets = []
                 y = foot
                 for c in range(self.settings['structure']['column']):
-                    if c > 0 and len(clause_list) > c and chr_num + len(str(clause_list[index[0]])) > lim:
+                    if c > 0 and len(clause_list) > c and chr_num + len(str(clause_list[self.index[0]])) > lim:
                         break
                     if len(target_clause) == 0:
-                        if index[0] < len(clause_list):
-                            target_clause = str(clause_list[index[0]])
+                        if self.index[0] < len(clause_list):
+                            target_clause = str(clause_list[self.index[0]])
                     txt = target_clause[:lim]
                     if chr_num > lim:
                         break
                     chr_num += len(txt)
                     target_clause = target_clause[lim:]
                     if len(target_clause) == 0:
-                        index[0] += 1
-                        index[1] = 0
+                        self.index[0] += 1
+                        self.index[1] = 0
                     else:
-                        index[1] += lim
+                        self.index[1] += lim
                     _font = Font(self.main_frame,family=self.settings['font']['name'],size=self.settings['font']['size'],weight=self.settings['font']['weight'])
                     label = ttk.Label(self.main_frame,text=txt,anchor=W,font=_font,style='MainFrame.TLabel',justify=CENTER)
                     column_widgets.append(label)
@@ -215,7 +210,7 @@ class LayoutManager:
         max_width -= self.settings['spaces']['char'] + self.settings['spaces']['paragraph']
         max_height -= self.settings['spaces']['sentence']
         self.main_frame.configure(width = max_width, height = max_height)
-        return index
+        return self.index
 
     def centering(self):
         if self.now_layout == Layout.STRIPE:
